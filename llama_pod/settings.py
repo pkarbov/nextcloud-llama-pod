@@ -1,4 +1,5 @@
 import enum
+import uuid
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Optional
@@ -39,6 +40,11 @@ class Settings(BaseSettings):
     environment: str = "dev"
 
     log_level: LogLevel = LogLevel.INFO
+
+    # Variables for LLaMa
+    llama_path: str = ""
+    llama_auth: str = str(uuid.uuid4())
+    llama_conf: str = ""
 
     # Variables for the database
     db_host: str = "localhost"
