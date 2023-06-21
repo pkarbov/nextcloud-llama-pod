@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: llama_pod:${LLAMA_POD_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      LLAMA_POD_HOST: 0.0.0.0
+      LLAMA_POD_DB_HOST: llama_pod-db
+      LLAMA_POD_DB_PORT: 5432
+      LLAMA_POD_DB_USER: llama_pod
+      LLAMA_POD_DB_PASS: llama_pod
+      LLAMA_POD_DB_BASE: llama_pod
+      LLAMA_POD_REDIS_HOST: llama_pod-redis
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: llama_pod-db
+    environment:
+      POSTGRES_PASSWORD: "llama_pod"
+      POSTGRES_USER: "llama_pod"
+      POSTGRES_DB: "llama_pod"
+    volumes:
+    - llama_pod-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U llama_pod
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "llama_pod-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  llama_pod-db-data:
+    name: llama_pod-db-data

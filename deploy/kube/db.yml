@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: llama-pod
+  name: llama-pod-db
+spec:
+  selector:
+    matchLabels:
+      app: llama-pod-db
+  template:
+    metadata:
+      labels:
+        app: llama-pod-db
+    spec:
+      containers:
+      - name: database
+        image: postgres:13.8-bullseye
+        resources:
+          limits:
+            memory: "300Mi"
+            cpu: "200m"
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "llama_pod"
+        - name: POSTGRES_USER
+          value: "llama_pod"
+        - name: POSTGRES_DB
+          value: "llama_pod"
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: llama-pod
+  name: "llama-pod-db-service"
+spec:
+  selector:
+    app: llama-pod-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
